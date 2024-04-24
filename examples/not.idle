@@ -1,0 +1,9 @@
+package Not(
+    in x: logic,
+    out y: logic,
+    out z: analog,
+    in clk: clock,
+) {
+    y: !x;
+    z: x / 2;
+}
