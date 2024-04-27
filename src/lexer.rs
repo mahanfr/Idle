@@ -1,15 +1,17 @@
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     Number(f64),
     Integer(i32),
     String,
     Ident,
-    Operand,
     Empty,
     If,
     Else,
     Elif,
     Proc,
     Package,
+    In,
+    Out,
     Loop,
     Log,
     OCurly,
@@ -48,12 +50,12 @@ pub enum TokenType {
     DoubleAnd,
 }
 
+#[derive(Debug, Clone)]
 pub struct Token {
     pub ttype: TokenType,
     pub literal: String,
 }
 impl Token {
-
     pub fn new(ttype: TokenType, literal: String) -> Self {
         Token {
             ttype,
@@ -69,6 +71,7 @@ impl Token {
     }
 }
 
+#[derive(Debug)]
 pub struct Lexer {
     source: Vec<char>,
     pub token: Token,
@@ -120,7 +123,13 @@ impl Lexer {
         }
     }
 
-    fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Token {
+        let token = self.__next_token();
+        self.token = token.clone();
+        return token;
+    }
+
+    fn __next_token(&mut self) -> Token {
         self.trim_left();
         while !self.is_empty() {
             if self.source[self.cur] == '~' {
@@ -251,6 +260,8 @@ impl Lexer {
             "package" => Some(TokenType::Package),
             "loop" => Some(TokenType::Loop),
             "log" => Some(TokenType::Log),
+            "in" => Some(TokenType::In),
+            "out" => Some(TokenType::Out),
             _ => None,
         }
     }
