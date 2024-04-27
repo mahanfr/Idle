@@ -123,6 +123,14 @@ impl Lexer {
         }
     }
 
+    pub fn match_token(&mut self, tt: TokenType) {
+        if self.token.ttype == tt {
+            self.next_token();
+        } else {
+            panic!("expected {tt:?} found {:?}!", self.token.ttype);
+        }
+    }
+
     pub fn next_token(&mut self) -> Token {
         let token = self.__next_token();
         self.token = token.clone();
