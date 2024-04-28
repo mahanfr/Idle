@@ -33,7 +33,6 @@ impl From<&String> for PinKind {
     }
 }
 
-
 #[derive(Default, Debug, Clone)]
 pub struct Pin {
     ident: String,
@@ -41,9 +40,7 @@ pub struct Pin {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct Operator {
-
-}
+pub struct Operator {}
 
 pub fn parse_package_file(lexer: &mut Lexer) -> PackageFile {
     lexer.next_token();
@@ -57,7 +54,7 @@ pub fn parse_package_file(lexer: &mut Lexer) -> PackageFile {
                 pkgfile.pakages.push(parse_package(lexer));
             }
             _ => {
-                panic!("Every package must start with the <<package>> identifier");
+                panic!("Every package must start with the <<package>> identifier not {}", lexer.token.literal);
             },
         }
     }
@@ -73,7 +70,10 @@ fn parse_package(lexer: &mut Lexer) -> Package {
     let mut outputs = Vec::<Pin>::new();
     loop {
         match lexer.token.ttype {
-            TokenType::CParen => break,
+            TokenType::CParen => {
+                lexer.match_token(TokenType::CParen);
+                break;
+            }
             TokenType::In | TokenType::Out => {
                 let in_out = lexer.token.ttype.clone();
                 lexer.next_token();
@@ -81,6 +81,7 @@ fn parse_package(lexer: &mut Lexer) -> Package {
                 lexer.match_token(TokenType::Ident);
                 lexer.match_token(TokenType::Colon);
                 let pin_kind = PinKind::from(&lexer.token.literal);
+                lexer.match_token(TokenType::Ident);
                 if in_out == TokenType::In {
                     inputs.push(Pin {
                         ident,
@@ -98,10 +99,27 @@ fn parse_package(lexer: &mut Lexer) -> Package {
                 continue;
             },
             _ => {
-                panic!("expected pin name found {:?}", lexer.token.ttype);
+                panic!("expected pin defenition found {:?}:{}", lexer.token.ttype, lexer.token.literal);
             }
         }
     }
+    // package body
+    lexer.match_token(TokenType::OCurly);
+    loop {
+        match lexer.token.ttype {
+            TokenType::CCurly => {
+                lexer.match_token(TokenType::CCurly);
+                break;
+            },
+            TokenType::Empty => {
+                panic!("Incomplete package definition");
+            }
+            _ => {
+                lexer.next_token();
+            }
+        }
+    }
+
     Package {
         name: pkg_name,
         inputs,
@@ -109,6 +127,4 @@ fn parse_package(lexer: &mut Lexer) -> Package {
         body: Vec::new(),
     }
 }
-
-
 
